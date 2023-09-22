@@ -5,6 +5,7 @@ import os
 from logging import getLogger
 from typing import List
 
+# 采用 google 的 sentencepiece 处理 token
 from sentencepiece import SentencePieceProcessor
 
 

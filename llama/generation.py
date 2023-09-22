@@ -395,13 +395,13 @@ class Llama:
         ]
 
 
-def sample_top_p(probs, p):
+def sample_top_p(probs, p: float):
     """
     Perform top-p (nucleus) sampling on a probability distribution.
 
     Args:
-        probs (torch.Tensor): Probability distribution tensor.
-        p (float): Probability threshold for top-p sampling.
+        probs (torch.Tensor): Probability distribution tensor.  概率分布向量 [batch_size, vocab_probs]
+        p (float): Probability threshold for top-p sampling.    值越大能保留的用于采样的越多。
 
     Returns:
         torch.Tensor: Sampled token indices.
@@ -411,11 +411,24 @@ def sample_top_p(probs, p):
         exceeds the threshold p. The distribution is renormalized based on the selected tokens.
 
     """
+    # 按概率值排序，并获取其索引（也直接对应词汇表里的 token_id）
     probs_sort, probs_idx = torch.sort(probs, dim=-1, descending=True)
-    probs_sum = torch.cumsum(probs_sort, dim=-1)
+
+    # 计算每个序列的概率总和，在本文件调用中，已经经过 softmax 了，因此此值一定是 1
+    probs_sum = torch.cumsum(probs_sort, dim=-1) 
+
+    # 大于 p 值全部遮蔽掉，p 值越大能保留用于采用的越多。
     mask = probs_sum - probs_sort > p
-    probs_sort[mask] = 0.0
+
+    # 执行遮蔽，概率设置为 0                                   
+    probs_sort[mask] = 0.0     
+
+    # 把遮蔽后的概率值，进行归一化处理，使其概率和为 1 
     probs_sort.div_(probs_sort.sum(dim=-1, keepdim=True))
+
+    # 采样下一个 token 的索引，该方式，概率为 0 的一定不会被选出来。
     next_token = torch.multinomial(probs_sort, num_samples=1)
-    next_token = torch.gather(probs_idx, -1, next_token)
+
+    # 根据索引，取出实际的 token_id 
+    next_token = torch.gather(probs_idx, -1, next_token)              
     return next_token

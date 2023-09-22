@@ -1,0 +1,24 @@
+{
+  // 使用 IntelliSense 了解相关属性。 
+  // 悬停以查看现有属性的描述。
+  // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug LLaMa",
+      "type": "python",
+      "request": "launch",
+      "module": "torch.distributed.run",
+      "args": [
+        // "--nproc-per-node=1",
+        "example_chat_completion.py",
+        "./llama-2-7b-chat",
+        "./tokenizer.model"
+      ],
+      "env": {
+        // "WORLD_SIZE": "1",
+      },
+      "justMyCode": false
+    }
+  ]
+}
